@@ -123,4 +123,48 @@ class ExternalTextureManager {
 }
 
 TextureManager <|--ExternalTextureManager
+
+interface GlShaderProgram {
+queueInputFrame():void
+releaseOutputFrame():void
+signalEndOfCurrentInputStream():void
+flush():void
+release():void
+}
+
+abstract class BaseGlShaderProgram{
+#outputTexturePool:TexturePool
+-inputListener:InputListener
+-outputListener:OutputListener
+-errorListener:ErrorListener
++configure():Size
++drawFrame():void
++queueInputFrame():void
++releaseOutputFrame():void
++signalEndOfCurrentInputStream():void
++flush():void
++release():void
+}
+
+GlShaderProgram <|-- BaseGlShaderProgram
+GlShaderProgram <|-- ExternalShaderProgram
+
+class DefaultShaderProgram {
+-glProgram:GlProgram
++ create():DefaultShaderProgram
++createWithInternalSampler():DefaultShaderProgram
++createWithExternalSampler():DefaultShaderProgram
++createApplyingOetf():DefaultShaderProgram
++createWithSampler():DefaultShaderProgram
++setTextureTransformMatrix():void
++configure():Size
++drawFrame():void
++setGaimmap():void
++shouldClearTextureBuffer():boolean
++setOutputColorTransfer():void
+}
+BaseGlShaderProgram <|-- DefaultShaderProgram
+ExternalShaderProgram <|.. DefaultShaderProgram
+
+ExternalTextureManager *--> ExternalShaderProgram
 @enduml
