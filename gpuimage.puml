@@ -1,0 +1,100 @@
+@startuml
+
+class GPUImage {
+-context : Context
+-renderer : GPUImageRenderer
+-filter : GPUImageFilter
+-currentBitmap : Bitmap
++setGLSurfaceView : void
++setGLTextureView : void
++requestRender : void
++setFilter : void
++setImage : void
++getBitmapWithFilterApplied : Bitmap
++getBitmapForMultipleFilters : Bitmap
+}
+GPUImage *-- GPUImageRenderer
+GPUImage o-- GPUImageFilter
+
+class GPUImageRenderer {
+-filter : GPUImageFilter
+-glCubeBuffer : FloatBuffer
+-glTextureBuffer : FloatBuffer
+-imageWidth : int
+-imageHeight : int
+-runOnDraw : Queue<Runnable>
+-runOnDrawEnd : Queue<Runnable>
++onSurfaceCreated() : void
++onSurfaceChanged() : void
++onDrawFrame() : void
++setFilter() : void
++setImageBitmap() : void
++getFrameWidth() : int
++getFrameHeight() : int
++setRotation() : void
+#runOnDraw() : void
+#runOnDrawEnd() : void
+}
+
+Interface GLSurfaceView.Renderer {
++onSurfaceCreated() : void
++onSurfaceChanged() : void
++onDrawFrame() : void
+}
+
+GPUImageRenderer o-- GPUImageFilter
+GLSurfaceView.Renderer <|.. GPUImageRenderer
+TextureRotationUtil <-- GPUImageRenderer : use
+GLTextureView <-- GPUImage : use
+GLSurfaceView <-- GPUImage : use
+
+class GPUImageFilter {
+-runOnDraw : LinkedList<Runnable>
+-outputWidth : int
+-outputHeight : int
+-isInitialized : boolean
++GPUImageFilter()
++onInit() : void
++onInitialized() : void
++ifNeedInit() : void
++destroy() : void
++onDestroy() : void
++onOutputSizeChanged() : void
++onDraw() : void
+#runPendingOnDrawTasks() : void
++isInitialized() : boolean
++getOutputWidth() : int
++getOutputHeight() : int
+#setInteger() : void
+#setFloat() : void
+}
+
+class GPUImageBrightnessFilter {
+-brightnessLocation : int
+-brightness : float
++onInit() : void
++onInitialized() : void
++setBrightness() : void
+}
+
+class GPUImageTwoInputFilter {
+-bitmap : Bitmap
+-texture2CoordinatesBuffer : ByteBuffer
++onInit() : void
++onInitialized() : void
++setBitmap() : void
++onDestroy() : void
++setRotation() : void
+}
+
+class GPUImageAddBlendFilter {
+}
+
+class GPUImageLookupFilter {
+}
+
+GPUImageFilter <|-- GPUImageBrightnessFilter
+GPUImageFilter <|-- GPUImageTwoInputFilter
+GPUImageTwoInputFilter <|-- GPUImageAddBlendFilter
+GPUImageTwoInputFilter <|-- GPUImageLookupFilter
+@enduml

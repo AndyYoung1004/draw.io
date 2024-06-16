@@ -1,0 +1,126 @@
+@startuml
+abstract class SampleExporter {
+-muxerWrapper: MuxerWrapper
+-metadata: Metadata
++ getInput(): GraphInput
++ processData(): boolean
+}
+
+class TransformerInternal {
+-sampleExporters:List<SampleExporter>
+-sequenceAssetLoaders:List<SequenceAssetLoader>
+-assetLoaderInputTracker:AssetLoaderInputTracker
+-muxerWrapper:MuxerWrapper
++start():void
++getProgress():int
++cancle():void
+}
+
+TransformerInternal *--> SampleExporter
+
+SampleExporter <|-- AudioSampleExporter
+SampleExporter <|-- EncodedSampleExporter
+SampleExporter <|-- VideoSampleExporter
+
+VideoSampleExporter *--> TransformerVideoGraph
+
+class VideoSampleExporter{
+-videoGraph:TransformerVideoGraph
+-encoderWrapper:EncoderWrapper
+-encoderOutputBuffer:DecoderInputBuffer
+}
+
+interface VideoGraph {
++onOutputSizeChanged()
+initialize():void
+registerInput():void
+getProcessor(int index):VideoFrameProcessor
+setOutputSurfaceInfo():void
+hasProducedFrameWithTimestampZero():boolean
+release():void
+}
+
+interface TransformerVideoGraph extends VideoGraph
+interface PreviewingVideoGraph extends VideoGraph
+abstract class MultipleInputVideoGraph implements VideoGraph
+abstract class SingleInputVideoGraph implements VideoGraph
+
+
+class TransformerMultipleInputVideoGraph extends MultipleInputVideoGraph
+class TransformerMultipleInputVideoGraph implements TransformerVideoGraph
+class TransformerSingleInputVideoGraph extends SingleInputVideoGraph
+class TransformerSingleInputVideoGraph implements TransformerVideoGraph
+class PreviewingSingleInputVideoGraph extends SingleInputVideoGraph
+class PreviewingSingleInputVideoGraph implements PreviewingVideoGraph
+
+class TransformerSingleInputVideoGraph {
+-videoFrameProcessingWrapper : VideoFrameProcessingWrapper
+}
+
+TransformerSingleInputVideoGraph *--> videoFrameProcessingWrapper
+TransformerMultipleInputVideoGraph *--> videoFrameProcessingWrapper
+
+class videoFrameProcessingWrapper {
+-videoFrameProcessor:VideoFrameProcessor
+}
+class videoFrameProcessingWrapper implements GraphInput
+
+interface VideoFrameProcessor{
+
+}
+
+videoFrameProcessingWrapper *--> VideoFrameProcessor
+
+VideoFrameProcessor <|.. DefaultVideoFrameProcessor
+
+class DefaultVideoFrameProcessor {
+-context:Context
+-glObjectsProvider:GlObjectsProvider
+-eglDisplay:EGLDisplay
+-eglContext:EGLContext
+-inputSwitcher:InputSwitcher
+-videoFrameProcessin:VideoFrameProcessingTaskExecutor
+- listener:VideoFrameProcessor.Listener
+-listenerExecutor:Executor
+-renderFramesAutomatically:boolean
+- finalShaderProgramWrapper:FinalShaderProgramWrapper
+-intermediateGlShaderPrograms:List<GlShaderProgram>
+
+}
+
+DefaultVideoFrameProcessor *--> InputSwitcher
+
+class InputSwitcher {
+-glObjectsProvider:GlObjectsProvider
+-videoFrameProcessingTaskExecutor:VideoFrameProcessingTaskExecutor
+-errorListenerExecutor:Executor
+-inputs:SparseArray<Input>
+-activeTextureManager:TextureManager
+
+}
+
+abstract class TextureManager {
+-videoFrameProcessingTaskExecutor:VideoFrameProcessingTaskExecutor
+
++setDefaultBufferSize():void
++setSamplingGlShaderProgram():void
++queueInputBitmap():void
++queueInputTexture():void
++registerInputFrame():void
+
+}
+InputSwitcher *--> TextureManager
+
+class ExternalTextureManager {
+-glObjectsProvider:GlObjectsProvider
+-externalShaderProgram:ExternalShaderProgram
+-externalTexId:int
+-surface:Surface
+-surfaceTexture:SurfaceTexture
+-pendingFrames:Queue<FrameInfo>
+-scheduledExecutorService:ScheduledExecutorService
+-currentFrame:FrameInfo
+}
+
+TextureManager <|--ExternalTextureManager
+@enduml
