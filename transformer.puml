@@ -7,13 +7,15 @@ abstract class SampleExporter {
 }
 
 class TransformerInternal {
+-internalHandlerThread:HandlerThread
+-internalHandler:HandlerWrapper
 -sampleExporters:List<SampleExporter>
 -sequenceAssetLoaders:List<SequenceAssetLoader>
 -assetLoaderInputTracker:AssetLoaderInputTracker
 -muxerWrapper:MuxerWrapper
 +start():void
 +getProgress():int
-+cancle():void
++cancel():void
 }
 
 TransformerInternal *--> SampleExporter
@@ -167,4 +169,218 @@ BaseGlShaderProgram <|-- DefaultShaderProgram
 ExternalShaderProgram <|.. DefaultShaderProgram
 
 ExternalTextureManager *--> ExternalShaderProgram
+
+
+interface ExtractorsFactory {
+createExtractors:Extractor[]
+}
+
+class DefaultExtractorsFactory{
+createExtractors:Extractor[]
+}
+
+ExtractorsFactory <|.. DefaultExtractorsFactory
+
+
+class Transformer {
+-context:Context
+-audioMimeType:String
+-videoMimeType:String
+-audioProcessors:ImmutableList<AudioProcessor>
+-videoEffects:ImmutableList<Effect>
+-removeAudio:boolean
+-removeVideo:boolean
+-listeners:ListenerSet<Transformer.Listener>
+-assetLoaderFactory:AssetLoader.Factory
+-audioMixerFactory:AudioMixer.Factory
+-videoFrameProcessorFactory:VideoFrameProcessor.Factory
+-encoderFactory:Codec.EncoderFactory
+-muxerFactory:Muxer.Factory
+-debugViewProvider:DebugViewProvider
+-transformerInternal:TransformerInternal
+-remuxingMuxerWrapper:MuxerWrapper
+-composition:Composition
++buildUpon():Builder
++setListener():void
++addListener():void
++start():void
++getProgress():int
++cancel():void
++resume():void
+}
+
+class Builder {
+-context:Context
+-audioMimeType:String
+-videoMimeType:String
+-audioProcessors:ImmutableList<AudioProcessor>
+-videoEffects:ImmutableList<Effect>
+-removeAudio:boolean
+-removeVideo:boolean
+-listeners:ListenerSet<Transformer.Listener>
+-assetLoaderFactory:Factory
+-audioMixerFactory:AudioMixer.Factory
+-videoFrameProcessorFactory:VideoFrameProcessor.Factory
+-encoderFactory:Codec.EncoderFactory
+-muxerFactory:Muxer.Factory
+-debugViewProvider:DebugViewProvider
+
++setAudioMimeType():Builder
++setVideoMimeType():Builder
++setAudioProcessors():Builder
++setVideoEffects():Builder
++setListener():Builder
++addListener():Builder
++setAssetLoaderFactory():Builder
++setAudioMixerFactory():Builder
++setVideoFrameProcessorFactory():Builder
++setEncoderFactory():Builder
++setMuxerFactory():Builder
++setDebugViewProvider():Builder
++build():Transformer
+}
+
+
+interface Listener {
+onCompleted():void
+onError():void
+onFallbackApplied():void
+}
+
+
+Transformer +-- Builder
+Transformer +-- Listener
+Transformer *-- TransformerInternal
+
+
+interface AssetLoader {
+start():void
+getProgress():void
+release():void
+}
+
+class SequenceAssetLoader {
+-currentAssetLoader:AssetLoader
+}
+
+class ImageAssetLoader {
+}
+
+class ExoPlayerAssetLoader {
+-player:ExoPlayer
+}
+
+class TextureAssetLoader {
+
+}
+
+AssetLoader <|.. SequenceAssetLoader
+AssetLoader <|.. ImageAssetLoader
+AssetLoader <|.. ExoPlayerAssetLoader
+AssetLoader <|.. TextureAssetLoader
+SequenceAssetLoader *-- ImageAssetLoader
+SequenceAssetLoader *-- ExoPlayerAssetLoader
+SequenceAssetLoader *-- TextureAssetLoader
+
+
+interface Player {
+addListener():void
+removeListener():void
+setMediaItems():void
+moveMediaItems():void
+replaceMediaItem():void
+clearMediaItems():void
+prepare():void
+getPlaybackState():int
+isPlaying():boolean
+play():void
+pause():void
+setPlayWhenReady():void
+setRepeatMode():void
+seekToDefaultPosition():void
+seekTo():void
+seekToPrevious():void
+seekToNextMediaItem():void
+setPlaybackSpeed():void
+stop():void
+release():void
+setVideoSurface():void
+}
+
+abstract class BasePlayer {
+setMediaItem():void
+addMediaItem():void
+moveMediaItem:void
+replaceMediaItem:void
+clearMediaItems:void
+play():void
+pause():void
+seekTo():void
+hasNextMediaItem:void
+seekToNext:void
+setPlaybackSpeed:void
+getCurrentMediaItem:void
+}
+
+interface ExoPlayer {
+getPlayerError()
+getAudioComponent()
+getVideoComponent()
+getTextComponent()
+addAudioOffloadListener()
+addAnalyticsListener()
+getRendererType()
+getRenderer()
+getTrackSelector()
+prepare()
+setMediaSources()
+addMediaSource()
+replaceMediaItem()
+setVideoEffects()
+setVideoScalingMode()
+setVideoChangeFrameRateStrategy()
+
+}
+
+class SimpleExoPlayer {
+-player : ExoPlayerImpl
+}
+
+class ExoPlayerImpl {
+-interPlayer:ExoPlayerImplInternal
+-renderers:Renderer[]
+-trackSelector:TrackSelector
+-internalPlayer:ExoPlayerImplInternal
++getPlaybackState():int
++prepare():void
++setMediaItems():void
+}
+
+class ExoPlayerImplInternal {
++prepare():void
++setPlayWhenReady():void
++setRepeatMode():void
++seekTo():void
++setSeekParameters():void
++stop():void
++addMediaSources():void
++removeMediaSources():void
++release():void
++onPrepared():void
++handleMessage():void
+}
+
+
+Player <|-- ExoPlayer
+Player <|.. BasePlayer
+
+ExoPlayer <|.. SimpleExoPlayer
+ExoPlayer <|.. ExoPlayerImpl
+
+BasePlayer <|-- SimpleExoPlayer
+BasePlayer <|-- ExoPlayerImpl
+
+SimpleExoPlayer *-- ExoPlayerImpl
+ExoPlayerImpl *-- ExoPlayerImplInternal
+
 @enduml
