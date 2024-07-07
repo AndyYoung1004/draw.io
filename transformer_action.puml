@@ -1,0 +1,73 @@
+@startuml
+
+participant User
+
+User -> Transformer : start
+
+activate Transformer
+
+Transformer -> Transformer : initialize
+activate Transformer
+deactivate Transformer
+
+Transformer -> Transformer : startInternal
+activate Transformer
+
+Transformer -> MuxerWrapper : new MuxerWrapper
+activate MuxerWrapper
+MuxerWrapper --> Transformer : Done
+deactivate MuxerWrapper
+
+Transformer -> DefaultAssetLoaderFactory : new DefaultAssetLoaderFactory
+activate DefaultAssetLoaderFactory
+DefaultAssetLoaderFactory --> Transformer : Done
+deactivate DefaultAssetLoaderFactory
+
+Transformer -> TransformerInternal : new TransformerInternal
+activate TransformerInternal
+TransformerInternal --> Transformer : Done
+deactivate TransformerInternal
+
+Transformer -> TransformerInternal : start
+activate TransformerInternal
+TransformerInternal -> HandlerWrapper : sendEmptyMessage(MSG_START)
+activate HandlerWrapper
+HandlerWrapper --> TransformerInternal
+deactivate HandlerWrapper
+
+TransformerInternal -> TransformerInternal : startInternal
+activate TransformerInternal
+TransformerInternal -> SequenceAssetLoader : start
+activate SequenceAssetLoader
+
+SequenceAssetLoader -> ExoPlayerAssetAssetLoader : start
+activate ExoPlayerAssetAssetLoader
+
+ExoPlayerAssetAssetLoader -> ExoPlayer : setMediaItem
+activate ExoPlayer
+ExoPlayer --> ExoPlayerAssetAssetLoader : Done
+deactivate ExoPlayer
+
+ExoPlayerAssetAssetLoader -> ExoPlayer : prepare
+activate ExoPlayer
+ExoPlayer --> ExoPlayerAssetAssetLoader : Done
+deactivate ExoPlayer
+
+ExoPlayerAssetAssetLoader --> SequenceAssetLoader : Done
+deactivate ExoPlayerAssetAssetLoader
+
+SequenceAssetLoader --> TransformerInternal : Done
+deactivate SequenceAssetLoader
+
+deactivate TransformerInternal
+
+TransformerInternal --> Transformer : Done
+deactivate TransformerInternal
+
+deactivate Transformer
+Transformer --> User : Done
+
+
+
+
+@enduml
